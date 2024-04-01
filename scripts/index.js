@@ -3,47 +3,68 @@ let playedRounds = 0;
 let userPoints = 0;
 let machinePoints = 0;
 
-const input = document.getElementById("rounds");
-const startButton = document.getElementById("startButton");
+const roundsInput = document.getElementById("rounds");
+const initButton = document.getElementById("initButton");
 const gameContainer = document.getElementById("gameContainer");
-
-const playButton = document.createElement("button");
-const playButtonText = document.createTextNode("Que empiece el juego");
-playButton.appendChild(playButtonText);
-playButton.setAttribute("id", "playButton");
-
-startButton.addEventListener("click", () => {
-  startButton.disabled = true;
-  rounds = input.value;
-  if (rounds > 0) {
-    gameContainer.appendChild(
-      createTitle(`Empecemos, la cantidad de rondas es ${rounds}`)
-    );
-    gameContainer.appendChild(createGameSelector());
-    gameContainer.appendChild(playButton);
-  } else {
-    alert("Debes especificar un número");
-  }
+const playRoundButton = createButton({
+  buttonText: "Que empiece el juego",
+  buttonId: "playRoundButton",
+  buttonHandler: playRoundButtonHandler,
 });
 
-playButton.addEventListener("click", () => {
-  if (playedRounds >= parseInt(rounds)) {
-    alert("Ya acabo...");
+function initButtonHandler() {
+  rounds = parseInt(roundsInput.value);
+  if (rounds > 0) {
+    initButton.disabled = true;
+    initGame();
     return;
   }
 
-  const gameSelector = document.getElementById("gameSelector");
-  const selectedValue = gameSelector.value;
-  const machineSelection = chooseRandomOption();
+  alert("Debes especificar un número mayor a 0");
+}
 
-  play(selectedValue, machineSelection);
-  if (playedRounds >= parseInt(rounds)) {
-    const winner = getWinner();
-    alert("Fin del juego");
-    alert(`Ganó... ${winner}`);
+function playRoundButtonHandler() {
+  const userSelection = document.getElementById("gameSelector").value;
+  const machineSelection = chooseRandomOption();
+  getRoundResult(userSelection, machineSelection);
+
+  if (playedRounds >= rounds) {
+    alert(`Resultado final: ganó... ${getWinner()}`);
     location.reload();
   }
-});
+}
+
+function initGame() {
+  gameContainer.appendChild(
+    createTitle(`Empecemos, la cantidad de rondas es ${rounds}`)
+  );
+  gameContainer.appendChild(createGameSelector());
+  gameContainer.appendChild(playRoundButton);
+}
+
+function getRoundResult(selectedValue, machineSelection) {
+  playedRounds++;
+
+  alert(`La maquina eligió: ${machineSelection}`);
+
+  if (selectedValue === machineSelection) {
+    alert("Empate");
+    return;
+  }
+
+  if (
+    (selectedValue === "piedra" && machineSelection === "papel") ||
+    (selectedValue === "papel" && machineSelection === "tijera") ||
+    (selectedValue === "tijera" && machineSelection === "piedra")
+  ) {
+    alert("Gana la maquina");
+    machinePoints++;
+    return;
+  }
+
+  alert("Ganaste");
+  userPoints++;
+}
 
 function getWinner() {
   if (userPoints > machinePoints) {
@@ -57,55 +78,21 @@ function getWinner() {
   return "Nadie... fue un empate";
 }
 
-function play(selectedValue, machineSelection) {
-  playedRounds++;
+function chooseRandomOption() {
+  const options = ["piedra", "papel", "tijera"];
+  const randomValue = Math.floor(Math.random() * 3);
+  return options[randomValue];
+}
 
-  alert(`La maquina eligió: ${machineSelection}`);
+//DOM METHODS
+function createButton({ buttonText, buttonId, buttonHandler }) {
+  const buttonElement = document.createElement("button");
+  const buttonElementText = document.createTextNode(buttonText);
+  buttonElement.appendChild(buttonElementText);
+  buttonElement.setAttribute("id", buttonId);
+  buttonElement.addEventListener("click", buttonHandler);
 
-  if (selectedValue === machineSelection) {
-    alert("Empate");
-    return;
-  }
-
-  if (selectedValue === "piedra" && machineSelection === "papel") {
-    alert("Gana la maquina");
-    machinePoints++;
-    return;
-  }
-
-  if (selectedValue === "piedra" && machineSelection === "tijera") {
-    alert("Ganaste");
-    userPoints++;
-    return;
-  }
-
-  if (selectedValue === "papel" && machineSelection === "tijera") {
-    alert("Gana la maquina");
-    machinePoints++;
-    return;
-  }
-
-  if (selectedValue === "papel" && machineSelection === "piedra") {
-    alert("Ganaste");
-    userPoints++;
-    return;
-  }
-
-  if (selectedValue === "tijera" && machineSelection === "piedra") {
-    alert("Gana la maquina");
-    machinePoints++;
-    return;
-  }
-
-  if (selectedValue === "tijera" && machineSelection === "papel") {
-    alert("Ganaste");
-    userPoints++;
-    return;
-  }
-
-  alert(
-    `Quedó mal programado, hay un caso que no se cumple seleccionaste: ${selectedValue}, la maquina eligió ${machineSelection}`
-  );
+  return buttonElement;
 }
 
 function createTitle(text) {
@@ -114,12 +101,6 @@ function createTitle(text) {
   newTitle.appendChild(textContent);
 
   return newTitle;
-}
-
-function chooseRandomOption() {
-  const options = ["piedra", "papel", "tijera"];
-  const randomValue = Math.floor(Math.random() * 3);
-  return options[randomValue];
 }
 
 function createGameSelector() {
